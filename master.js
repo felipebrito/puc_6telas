@@ -1,15 +1,29 @@
 const { Server } = require("socket.io");
+const dgram = require("dgram");
+
 const io = new Server(3000, {
   cors: { origin: "*" }
 });
 
 console.log("Master server running on port 3000");
 
+// UDP Broadcast para autodescoberta na rede
+const udpServer = dgram.createSocket("udp4");
+udpServer.bind(() => {
+  udpServer.setBroadcast(true);
+  console.log("Broadcasting presence on UDP port 41234...");
+  
+  setInterval(() => {
+    const message = Buffer.from("PUC_MASTER_HERE");
+    udpServer.send(message, 0, message.length, 41234, "255.255.255.255");
+  }, 2000); // Manda um "Oi" a cada 2 segundos para os slaves acharem
+});
+
 // Keep track of connected slaves
 const slaves = new Set();
 
 io.on("connection", (socket) => {
-  console.log(`Slave connected: ${socket.id}`);
+  console.log(`Slave connected: ${socket.id} from ${socket.handshake.address}`);
   slaves.add(socket.id);
 
   socket.on("disconnect", () => {

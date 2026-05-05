@@ -3,9 +3,10 @@ const { io } = require("socket.io-client");
 const { spawn } = require("child_process");
 const net = require("net");
 const path = require("path");
+const dgram = require("dgram");
 
 // Configurações via variáveis de ambiente (ou defaults)
-const MASTER_IP = process.env.MASTER_IP || "http://127.0.0.1:3000";
+let MASTER_IP = process.env.MASTER_IP || "auto";
 const VIDEO_1_PATH = process.env.VIDEO_1_PATH || path.join(__dirname, "video1.mp4");
 const VIDEO_2_PATH = process.env.VIDEO_2_PATH || path.join(__dirname, "video2.mp4");
 const VIDEO_3_PATH = process.env.VIDEO_3_PATH || path.join(__dirname, "video3.mp4");
@@ -15,9 +16,7 @@ const IPC_SOCKET_1 = "/tmp/mpv_screen1.sock";
 const IPC_SOCKET_2 = "/tmp/mpv_screen2.sock";
 const IPC_SOCKET_3 = "/tmp/mpv_screen3.sock";
 
-console.log(`Connecting to Master at ${MASTER_IP}...`);
-const socket = io(MASTER_IP);
-
+let socket = null;
 let mpvProcess1 = null;
 let mpvProcess2 = null;
 let mpvProcess3 = null;
@@ -28,8 +27,6 @@ let ipcConnection3 = null;
 
 // Função para iniciar um processo do mpv
 function startMpv(screenId, socketPath, videoPath) {
-  // Argumentos essenciais: fullscreen, seleciona a tela correta, 
-  // cria o servidor IPC, remove controles na tela, mantem aberto no final
   const args = [
     "--fs", 
     `--screen=${screenId}`,
@@ -64,7 +61,7 @@ function sendMpvCommand(conn, command) {
   }
 }
 
-// Conectar ao socket do mpv (com retry caso o mpv ainda esteja abrindo)
+// Conectar ao socket do mpv
 function connectToIpc(socketPath, callback, retries = 5) {
   const conn = net.createConnection(socketPath);
   
@@ -92,7 +89,6 @@ function initPlayers() {
   mpvProcess2 = startMpv(1, IPC_SOCKET_2, VIDEO_2_PATH);
   mpvProcess3 = startMpv(2, IPC_SOCKET_3, VIDEO_3_PATH);
 
-  // Aguardar um pouco para garantir que os sockets foram criados
   setTimeout(() => {
     connectToIpc(IPC_SOCKET_1, (conn) => { ipcConnection1 = conn; });
     connectToIpc(IPC_SOCKET_2, (conn) => { ipcConnection2 = conn; });
@@ -100,35 +96,74 @@ function initPlayers() {
   }, 1000);
 }
 
-socket.on("connect", () => {
-  console.log("Connected to master!");
-});
+// Configurar a conexão com o Master
+function connectToMasterServer(ip) {
+  if (socket) {
+    socket.disconnect();
+  }
 
-socket.on("play", () => {
-  console.log("Command received: PLAY");
-  sendMpvCommand(ipcConnection1, ["set_property", "pause", false]);
-  sendMpvCommand(ipcConnection2, ["set_property", "pause", false]);
-  sendMpvCommand(ipcConnection3, ["set_property", "pause", false]);
-});
+  console.log(`Connecting to Master at ${ip}...`);
+  socket = io(ip);
 
-socket.on("pause", () => {
-  console.log("Command received: PAUSE");
-  sendMpvCommand(ipcConnection1, ["set_property", "pause", true]);
-  sendMpvCommand(ipcConnection2, ["set_property", "pause", true]);
-  sendMpvCommand(ipcConnection3, ["set_property", "pause", true]);
-});
+  socket.on("connect", () => {
+    console.log("Connected to master!");
+  });
 
-socket.on("seek", (timeInSeconds) => {
-  console.log(`Command received: SEEK to ${timeInSeconds}`);
-  sendMpvCommand(ipcConnection1, ["seek", timeInSeconds, "absolute"]);
-  sendMpvCommand(ipcConnection2, ["seek", timeInSeconds, "absolute"]);
-  sendMpvCommand(ipcConnection3, ["seek", timeInSeconds, "absolute"]);
-});
+  socket.on("play", () => {
+    console.log("Command received: PLAY");
+    sendMpvCommand(ipcConnection1, ["set_property", "pause", false]);
+    sendMpvCommand(ipcConnection2, ["set_property", "pause", false]);
+    sendMpvCommand(ipcConnection3, ["set_property", "pause", false]);
+  });
 
-socket.on("load", () => {
-  console.log("Command received: LOAD");
-  initPlayers();
-});
+  socket.on("pause", () => {
+    console.log("Command received: PAUSE");
+    sendMpvCommand(ipcConnection1, ["set_property", "pause", true]);
+    sendMpvCommand(ipcConnection2, ["set_property", "pause", true]);
+    sendMpvCommand(ipcConnection3, ["set_property", "pause", true]);
+  });
+
+  socket.on("seek", (timeInSeconds) => {
+    console.log(`Command received: SEEK to ${timeInSeconds}`);
+    sendMpvCommand(ipcConnection1, ["seek", timeInSeconds, "absolute"]);
+    sendMpvCommand(ipcConnection2, ["seek", timeInSeconds, "absolute"]);
+    sendMpvCommand(ipcConnection3, ["seek", timeInSeconds, "absolute"]);
+  });
+
+  socket.on("load", () => {
+    console.log("Command received: LOAD");
+    initPlayers();
+  });
+}
+
+// Auto-descoberta via UDP
+if (MASTER_IP === "auto") {
+  console.log("MASTER_IP set to 'auto'. Listening for Master UDP broadcasts on port 41234...");
+  
+  const udpClient = dgram.createSocket("udp4");
+  
+  udpClient.on("listening", () => {
+    const address = udpClient.address();
+    console.log(`UDP Client listening for broadcasts on port ${address.port}`);
+  });
+
+  udpClient.on("message", (msg, rinfo) => {
+    if (msg.toString() === "PUC_MASTER_HERE") {
+      const discoveredIp = `http://${rinfo.address}:3000`;
+      
+      // Se ainda não estivermos conectados, ou se for a primeira vez
+      if (!socket || socket.io.uri !== discoveredIp) {
+        console.log(`Found Master broadcasting from ${rinfo.address}!`);
+        connectToMasterServer(discoveredIp);
+      }
+    }
+  });
+
+  udpClient.bind(41234);
+} else {
+  // IP estático já fornecido
+  connectToMasterServer(MASTER_IP);
+}
 
 // Inicialização local
 initPlayers();

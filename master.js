@@ -28,8 +28,8 @@ io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id} from ${socket.handshake.address}`);
   slaves.add(socket.id);
 
-  if (slaves.size === 6) {
-    console.log("🌟 As 6 telas foram detectadas conectadas ao Master!");
+  if (slaves.size === 2) {
+    console.log("🌟 Os 2 Mac Minis (6 telas) foram detectados conectados ao Master!");
     console.log("⏳ Iniciando Auto-Play: Enviando LOAD para todas...");
     io.emit("load");
     

@@ -7,9 +7,9 @@ const dgram = require("dgram");
 
 // Configurações via variáveis de ambiente (ou defaults)
 let MASTER_IP = process.env.MASTER_IP || "auto";
-const VIDEO_1_PATH = process.env.VIDEO_1_PATH || path.join(__dirname, "video1.mp4");
-const VIDEO_2_PATH = process.env.VIDEO_2_PATH || path.join(__dirname, "video2.mp4");
-const VIDEO_3_PATH = process.env.VIDEO_3_PATH || path.join(__dirname, "video3.mp4");
+const VIDEO_1_PATH = process.env.VIDEO_1_PATH || path.join(__dirname, "videos", "screen_1.mp4");
+const VIDEO_2_PATH = process.env.VIDEO_2_PATH || path.join(__dirname, "videos", "screen_2.mp4");
+const VIDEO_3_PATH = process.env.VIDEO_3_PATH || path.join(__dirname, "videos", "screen_3.mp4");
 
 // Sockets IPC do mpv
 const IPC_SOCKET_1 = "/tmp/mpv_screen1.sock";
@@ -35,6 +35,7 @@ function startMpv(screenId, socketPath, videoPath) {
     "--no-osd-bar",
     "--keep-open=yes",
     "--idle=yes",
+    "--pause",
     videoPath
   ];
 

@@ -22,12 +22,26 @@ udpServer.bind(() => {
 // Keep track of connected slaves
 const slaves = new Set();
 
+let autoPlayTimeout = null;
+
 io.on("connection", (socket) => {
-  console.log(`Slave connected: ${socket.id} from ${socket.handshake.address}`);
+  console.log(`Client connected: ${socket.id} from ${socket.handshake.address}`);
   slaves.add(socket.id);
 
+  if (slaves.size === 6) {
+    console.log("🌟 As 6 telas foram detectadas conectadas ao Master!");
+    console.log("⏳ Iniciando Auto-Play: Enviando LOAD para todas...");
+    io.emit("load");
+    
+    if (autoPlayTimeout) clearTimeout(autoPlayTimeout);
+    autoPlayTimeout = setTimeout(() => {
+      console.log("▶️ Auto-Play: Enviando PLAY sincronizado para todas as 6 telas!");
+      io.emit("play");
+    }, 2500);
+  }
+
   socket.on("disconnect", () => {
-    console.log(`Slave disconnected: ${socket.id}`);
+    console.log(`Client disconnected: ${socket.id}`);
     slaves.delete(socket.id);
   });
 });

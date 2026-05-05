@@ -82,7 +82,7 @@ Para garantir que os vídeos abram assim que alguém ligar o computador (se falt
 Como a aplicação agora roda em 2º plano, sempre que quiser dar Play ou Pause em todos os vídeos simultaneamente:
 
 1. No Mac Mini 1 (O Controlador), abra um novo terminal e rode:
-   node /Users/seu_usuario/Desktop/puc_6telas/master.js
+   node /Users/seu_usuario/Desktop/puc_6telas/cli.js
 
 2. Digite "play" e dê Enter. As duas máquinas tocarão os vídeos sincronizadas instantaneamente.
    Comandos suportados: play, pause, seek <segundos>, load.

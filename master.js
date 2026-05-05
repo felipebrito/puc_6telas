@@ -32,36 +32,21 @@ io.on("connection", (socket) => {
   });
 });
 
-// Simple CLI to control the cluster
-const readline = require("readline");
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
-console.log("\n--- Controles ---");
-console.log("play  : Tocar os vídeos");
-console.log("pause : Pausar os vídeos");
-console.log("seek [0-9]+ : Pular para um tempo específico (segundos)");
-console.log("load  : Recarregar os vídeos em todos os players");
-console.log("-----------------\n");
-
-rl.on("line", (line) => {
-  const [cmd, arg] = line.trim().split(" ");
-  
-  if (cmd === "play") {
-    console.log("-> Broadcast: PLAY");
-    io.emit("play");
-  } else if (cmd === "pause") {
-    console.log("-> Broadcast: PAUSE");
-    io.emit("pause");
-  } else if (cmd === "seek" && arg) {
-    console.log(`-> Broadcast: SEEK ${arg}`);
-    io.emit("seek", Number(arg));
-  } else if (cmd === "load") {
-    console.log("-> Broadcast: LOAD");
-    io.emit("load");
-  } else {
-    console.log("Comando não reconhecido. Use: play, pause, seek <segundos>, load");
-  }
+// CLI commands coming from the cli.js script
+io.on("connection", (socket) => {
+  socket.on("cli_command", (data) => {
+    if (data.command === "play") {
+      console.log("-> Broadcast: PLAY");
+      io.emit("play");
+    } else if (data.command === "pause") {
+      console.log("-> Broadcast: PAUSE");
+      io.emit("pause");
+    } else if (data.command === "seek" && data.arg !== undefined) {
+      console.log(`-> Broadcast: SEEK ${data.arg}`);
+      io.emit("seek", data.arg);
+    } else if (data.command === "load") {
+      console.log("-> Broadcast: LOAD");
+      io.emit("load");
+    }
+  });
 });

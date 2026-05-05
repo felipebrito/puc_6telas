@@ -15,7 +15,7 @@ module.exports = {
       script: "slave.js",
       watch: false,
       env: {
-        MASTER_IP: "auto",
+        MASTER_IP: "127.0.0.1",
         VIDEO_1_PATH: path.join(__dirname, "videos", "screen_1.mp4"),
         VIDEO_2_PATH: path.join(__dirname, "videos", "screen_2.mp4"),
         VIDEO_3_PATH: path.join(__dirname, "videos", "screen_3.mp4"),

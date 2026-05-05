@@ -11,7 +11,7 @@ module.exports = {
       }
     },
     {
-      name: "slave",
+      name: "slave-mini1",
       script: "slave.js",
       watch: false,
       env: {

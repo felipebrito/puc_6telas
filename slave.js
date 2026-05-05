@@ -35,6 +35,7 @@ function startMpv(screenId, socketPath, videoPath) {
     "--no-osd-bar",
     "--keep-open=yes",
     "--idle=yes",
+    "--loop=inf",
     "--pause",
     videoPath
   ];

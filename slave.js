@@ -174,9 +174,16 @@ function connectToIpc(socketPath, onData, callback, retries = 10) {
 
 // ─── PLAYERS ───────────────────────────────────────────────────────────────
 
+function cleanSockets(...paths) {
+  for (const p of paths) {
+    try { require("fs").unlinkSync(p); } catch (e) { /* não existia, ok */ }
+  }
+}
+
 function initPlayers() {
   if (MODE === "wide") {
     if (mpvProcessWide) mpvProcessWide.kill();
+    cleanSockets(IPC_SOCKET_WIDE);
     mpvProcessWide = startMpvWide(IPC_SOCKET_WIDE, WIDE_VIDEO_PATH, WIDE_GEOMETRY);
     setTimeout(() => {
       connectToIpc(IPC_SOCKET_WIDE, handleMpvDataWide, (conn) => { ipcConnectionWide = conn; });
@@ -187,6 +194,7 @@ function initPlayers() {
   if (mpvProcess1) mpvProcess1.kill();
   if (mpvProcess2) mpvProcess2.kill();
   if (mpvProcess3) mpvProcess3.kill();
+  cleanSockets(IPC_SOCKET_1, IPC_SOCKET_2, IPC_SOCKET_3);
 
   mpvProcess1 = startMpv(0, IPC_SOCKET_1, VIDEO_1_PATH);
   mpvProcess2 = startMpv(1, IPC_SOCKET_2, VIDEO_2_PATH);

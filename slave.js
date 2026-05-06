@@ -37,6 +37,9 @@ function startMpv(screenId, socketPath, videoPath) {
     "--idle=yes",
     "--loop=inf",
     "--pause",
+    "--ontop",
+    "--no-border",
+    "--cursor=hidden",
     videoPath
   ];
 
@@ -113,8 +116,17 @@ function connectToMasterServer(ip) {
 
   socket.on("play", () => {
     console.log("Command received: PLAY");
+    // Garante que está em fullscreen e no topo
+    sendMpvCommand(ipcConnection1, ["set_property", "fullscreen", true]);
+    sendMpvCommand(ipcConnection1, ["set_property", "ontop", true]);
     sendMpvCommand(ipcConnection1, ["set_property", "pause", false]);
+
+    sendMpvCommand(ipcConnection2, ["set_property", "fullscreen", true]);
+    sendMpvCommand(ipcConnection2, ["set_property", "ontop", true]);
     sendMpvCommand(ipcConnection2, ["set_property", "pause", false]);
+
+    sendMpvCommand(ipcConnection3, ["set_property", "fullscreen", true]);
+    sendMpvCommand(ipcConnection3, ["set_property", "ontop", true]);
     sendMpvCommand(ipcConnection3, ["set_property", "pause", false]);
   });
 

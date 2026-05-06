@@ -39,7 +39,7 @@ function startMpv(screenId, socketPath, videoPath) {
     "--pause",
     "--ontop",
     "--no-border",
-    "--cursor=hidden",
+    "--cursor-autohide=always",
     videoPath
   ];
 

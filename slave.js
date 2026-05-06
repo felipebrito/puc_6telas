@@ -164,6 +164,15 @@ function connectToIpc(socketPath, onData, callback, retries = 10) {
     conn.write(JSON.stringify({ command: ["observe_property", 1, "playback-time"] }) + "\n");
     conn.write(JSON.stringify({ command: ["observe_property", 2, "duration"] }) + "\n");
     callback(conn);
+
+    // Se o play já deveria ter começado, busca a posição correta e despausa
+    if (startEpoch) {
+      const expectedTime = ((Date.now() - startEpoch) / 1000) % (videoDuration || 9999);
+      if (expectedTime > 0) {
+        conn.write(JSON.stringify({ command: ["seek", expectedTime, "absolute"] }) + "\n");
+        conn.write(JSON.stringify({ command: ["set_property", "pause", false] }) + "\n");
+      }
+    }
   });
   conn.on("data", onData);
   conn.on("error", (err) => {

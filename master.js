@@ -19,9 +19,26 @@ udpServer.bind(() => {
   }, 2000); // Manda um "Oi" a cada 2 segundos para os slaves acharem
 });
 
+// Configuração de sincronismo
+const VIDEO_DURATION = 33; // Duração do vídeo em segundos para o loop
+let syncInterval = null;
+
+function startSyncLoop() {
+  if (syncInterval) clearInterval(syncInterval);
+  syncInterval = setInterval(() => {
+    console.log("🔄 Periodic Sync: Forçando reinício do loop para manter todas as telas juntas.");
+    io.emit("seek", 0);
+    io.emit("play");
+  }, VIDEO_DURATION * 1000);
+}
+
+function stopSyncLoop() {
+  if (syncInterval) clearInterval(syncInterval);
+  syncInterval = null;
+}
+
 // Keep track of connected slaves
 const slaves = new Set();
-
 let autoPlayTimeout = null;
 
 io.on("connection", (socket) => {
@@ -37,30 +54,36 @@ io.on("connection", (socket) => {
     autoPlayTimeout = setTimeout(() => {
       console.log("▶️ Auto-Play: Enviando PLAY sincronizado para todas as 6 telas!");
       io.emit("play");
+      startSyncLoop();
     }, 2500);
   }
 
   socket.on("disconnect", () => {
     console.log(`Client disconnected: ${socket.id}`);
     slaves.delete(socket.id);
+    if (slaves.size < 2) {
+      stopSyncLoop();
+    }
   });
-});
 
-// CLI commands coming from the cli.js script
-io.on("connection", (socket) => {
+  // CLI commands coming from the cli.js script
   socket.on("cli_command", (data) => {
     if (data.command === "play") {
       console.log("-> Broadcast: PLAY");
       io.emit("play");
+      startSyncLoop();
     } else if (data.command === "pause") {
       console.log("-> Broadcast: PAUSE");
       io.emit("pause");
+      stopSyncLoop();
     } else if (data.command === "seek" && data.arg !== undefined) {
       console.log(`-> Broadcast: SEEK ${data.arg}`);
       io.emit("seek", data.arg);
+      if (data.arg == 0) startSyncLoop();
     } else if (data.command === "load") {
       console.log("-> Broadcast: LOAD");
       io.emit("load");
+      stopSyncLoop();
     }
   });
 });

@@ -354,8 +354,10 @@ if (MASTER_IP === "auto") {
   connectToMasterServer(MASTER_IP);
 }
 
-// Inicialização local
-initPlayers();
+// No modo wide não inicializa localmente — aguarda o comando "load" do master
+if (MODE !== "wide") {
+  initPlayers();
+}
 
 // Limpeza no encerramento
 process.on("SIGINT", () => {

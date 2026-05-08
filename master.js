@@ -63,7 +63,7 @@ io.on("connection", (socket) => {
 
   // Slave reporta a duração do vídeo na primeira conexão
   socket.on("video_duration", (data) => {
-    if (!videoDuration) {
+    if (!videoDuration || Math.abs(videoDuration - data.duration) > 1) {
       videoDuration = data.duration;
       console.log(`Video duration set: ${videoDuration.toFixed(2)}s`);
     }
@@ -99,6 +99,7 @@ io.on("connection", (socket) => {
     if (slaves.size === 0) {
       stopHeartbeat();
       startEpoch = null;
+      videoDuration = null;
     }
   });
 

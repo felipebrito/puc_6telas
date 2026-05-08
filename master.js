@@ -90,7 +90,7 @@ io.on("connection", (socket) => {
     if (autoPlayTimeout) clearTimeout(autoPlayTimeout);
     autoPlayTimeout = setTimeout(() => {
       broadcastPlay(500);
-    }, 5000); // 5s para os mpvs iniciarem
+    }, 8000); // 8s para os mpvs iniciarem
   }
 
   socket.on("disconnect", () => {

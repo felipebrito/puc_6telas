@@ -325,10 +325,7 @@ if (MASTER_IP === "auto") {
   connectToMasterServer(MASTER_IP);
 }
 
-// No modo wide aguarda o "load" do master para iniciar
-if (MODE !== "wide") {
-  initPlayers();
-}
+// Aguarda o "load" do master para iniciar — evita dupla inicialização
 
 // ─── LIMPEZA ───────────────────────────────────────────────────────────────
 

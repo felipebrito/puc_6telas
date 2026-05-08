@@ -48,6 +48,8 @@ function startMpv(screenId, socketPath, videoPath) {
     "--loop=inf", "--pause",
     "--ontop", "--no-border",
     "--cursor-autohide=always",
+    "--no-input-default-bindings",
+    "--input-conf=/dev/null",
     videoPath
   ];
   console.log(`Starting mpv screen=${screenId}`);
@@ -65,6 +67,8 @@ function startMpvWide(socketPath, videoPath, geometry) {
     "--loop=inf", "--pause",
     "--ontop", "--no-border",
     "--cursor-autohide=always",
+    "--no-input-default-bindings",
+    "--input-conf=/dev/null",
     "--no-keepaspect-window",
     videoPath
   ];

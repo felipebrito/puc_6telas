@@ -201,7 +201,8 @@ function cleanSockets(...paths) {
 }
 
 function initPlayers() {
-  ipcReadyCount = 0; // reset contador para o novo ciclo
+  ipcReadyCount = 0;
+  videoDuration = null;
 
   if (MODE === "wide") {
     if (mpvProcessWide) mpvProcessWide.kill();

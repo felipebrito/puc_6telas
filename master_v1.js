@@ -82,8 +82,8 @@ io.on("connection", (socket) => {
     }, 200);
   });
 
-  // Auto-play quando os 2 Mac Minis estiverem conectados pela primeira vez
-  if (slaves.size === 2 && !startEpoch) {
+  // Auto-play quando os 2 Mac Minis estiverem conectados
+  if (slaves.size === 2) {
     console.log("🌟 Os 2 Mac Minis (6 telas) foram detectados!");
     io.emit("load");
 

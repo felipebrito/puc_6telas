@@ -108,7 +108,7 @@ function checkLoopEnd(prevTime, newTime) {
       console.log(`Loop end detected (${prevTime.toFixed(2)} → ${newTime.toFixed(2)})`);
       socket.emit("loop_end");
       // Permite emitir novamente depois que o novo ciclo começar
-      setTimeout(() => { loopEndEmitted = false; }, 5000);
+      setTimeout(() => { loopEndEmitted = false; }, 2000);
     }
   }
 }
@@ -169,8 +169,7 @@ function onAllIpcReady() {
   console.log("All IPC ready — syncing position");
   if (!startEpoch) return;
   const elapsed = (Date.now() - startEpoch) / 1000;
-  // Se duração ainda não foi reportada, seek para 0 com segurança
-  const expectedTime = videoDuration ? elapsed % videoDuration : 0;
+  const expectedTime = elapsed % (videoDuration || 9999);
   sendToAll(["seek", Math.max(0, expectedTime), "absolute"]);
   sendToAll(["set_property", "pause", false]);
 }
@@ -264,29 +263,19 @@ function schedulePlay(epoch) {
 function handleHeartbeat(data) {
   if (!startEpoch) return;
 
-  const elapsed = (data.epoch - startEpoch) / 1000;
+  const elapsed = (data.epoch - startEpoch) / 1000; // segundos desde o play
   if (!videoDuration || elapsed < 0) return;
 
   const expectedTime = elapsed % videoDuration;
 
-  if (MODE === "wide") {
-    const diff = Math.abs(localTimeWide - expectedTime);
-    if (diff > 0.3) {
-      console.log(`[WIDE] Drift ${diff.toFixed(3)}s — correcting to ${expectedTime.toFixed(2)}s`);
-      sendMpvCommand(ipcConnectionWide, ["seek", expectedTime, "absolute"]);
-    }
-    return;
-  }
+  const localTime = MODE === "wide" ? localTimeWide : localTimes[0];
+  const diff = Math.abs(localTime - expectedTime);
 
-  // Corrige as 3 telas individualmente
-  const conns = [ipcConnection1, ipcConnection2, ipcConnection3];
-  conns.forEach((conn, i) => {
-    const diff = Math.abs(localTimes[i] - expectedTime);
-    if (diff > 0.3) {
-      console.log(`[Screen ${i + 1}] Drift ${diff.toFixed(3)}s — correcting to ${expectedTime.toFixed(2)}s`);
-      sendMpvCommand(conn, ["seek", expectedTime, "absolute"]);
-    }
-  });
+  // Só corrige se o drift for maior que 0.3s
+  if (diff > 0.3) {
+    console.log(`Drift ${diff.toFixed(3)}s — correcting to ${expectedTime.toFixed(2)}s`);
+    sendToAll(["seek", expectedTime, "absolute"]);
+  }
 }
 
 // ─── MASTER CONNECTION ─────────────────────────────────────────────────────

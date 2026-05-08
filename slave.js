@@ -161,6 +161,19 @@ function handleMpvDataWide(data) {
   } catch (e) { /* JSON parcial, ignora */ }
 }
 
+let ipcReadyCount = 0;
+const IPC_TOTAL = () => MODE === "wide" ? 1 : 3;
+
+// Chamado quando todos os IPCs do ciclo atual conectaram
+function onAllIpcReady() {
+  console.log("All IPC ready — syncing position");
+  if (!startEpoch) return;
+  const elapsed = (Date.now() - startEpoch) / 1000;
+  const expectedTime = elapsed % (videoDuration || 9999);
+  sendToAll(["seek", Math.max(0, expectedTime), "absolute"]);
+  sendToAll(["set_property", "pause", false]);
+}
+
 function connectToIpc(socketPath, onData, callback, retries = 10) {
   const conn = net.createConnection(socketPath);
   conn.on("connect", () => {
@@ -168,15 +181,8 @@ function connectToIpc(socketPath, onData, callback, retries = 10) {
     conn.write(JSON.stringify({ command: ["observe_property", 1, "playback-time"] }) + "\n");
     conn.write(JSON.stringify({ command: ["observe_property", 2, "duration"] }) + "\n");
     callback(conn);
-
-    // Se o play já deveria ter começado, busca a posição correta e despausa
-    if (startEpoch) {
-      const expectedTime = ((Date.now() - startEpoch) / 1000) % (videoDuration || 9999);
-      if (expectedTime > 0) {
-        conn.write(JSON.stringify({ command: ["seek", expectedTime, "absolute"] }) + "\n");
-        conn.write(JSON.stringify({ command: ["set_property", "pause", false] }) + "\n");
-      }
-    }
+    ipcReadyCount++;
+    if (ipcReadyCount >= IPC_TOTAL()) onAllIpcReady();
   });
   conn.on("data", onData);
   conn.on("error", (err) => {
@@ -194,6 +200,8 @@ function cleanSockets(...paths) {
 }
 
 function initPlayers() {
+  ipcReadyCount = 0; // reset contador para o novo ciclo
+
   if (MODE === "wide") {
     if (mpvProcessWide) mpvProcessWide.kill();
     cleanSockets(IPC_SOCKET_WIDE);

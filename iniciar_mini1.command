@@ -33,7 +33,7 @@ MASTER_IP="http://127.0.0.1:3000" \
 VIDEO_1_PATH="$DIR/videos/screen_1.mp4" \
 VIDEO_2_PATH="$DIR/videos/screen_2.mp4" \
 VIDEO_3_PATH="$DIR/videos/screen_3.mp4" \
-SCREEN1_IDX=0 SCREEN2_IDX=2 SCREEN3_IDX=1 \
+SCREEN1_IDX=0 SCREEN2_IDX=1 SCREEN3_IDX=2 \
 "$NODE" "$DIR/slave.js" > /tmp/puc_slave1.log 2>&1 &
 SLAVE_PID=$!
 

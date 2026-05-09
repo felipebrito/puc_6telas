@@ -53,12 +53,15 @@ io.on("connection", (socket) => {
   console.log(`Client connected: ${socket.id} from ${socket.handshake.address}`);
   slaves.add(socket.id);
 
-  // Se o play já está em andamento, sincroniza o slave recém-conectado imediatamente
+  // Se o play já está em andamento, manda load + play_at para o slave recém-conectado
   if (startEpoch) {
     const elapsed = (Date.now() - startEpoch) / 1000;
-    const catchupEpoch = Date.now() + 300;
-    console.log(`Late slave joined — sending play_at for catchup (elapsed ${elapsed.toFixed(1)}s)`);
-    socket.emit("play_at", { epoch: catchupEpoch });
+    console.log(`Late slave joined — sending load then play_at (elapsed ${elapsed.toFixed(1)}s)`);
+    socket.emit("load");
+    setTimeout(() => {
+      const catchupEpoch = Date.now() + 8000;
+      socket.emit("play_at", { epoch: catchupEpoch });
+    }, 7000); // aguarda mpv iniciar
   }
 
   // Slave reporta a duração do vídeo na primeira conexão

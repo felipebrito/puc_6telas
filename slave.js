@@ -50,6 +50,7 @@ function startMpv(screenId, offsetX, socketPath, videoPath) {
   const geometry = `${SCREEN_W}x${SCREEN_H}+${offsetX}+0`;
   const args = [
     `--geometry=${geometry}`,
+    "--fs",
     `--input-ipc-server=${socketPath}`,
     "--no-osc", "--no-osd-bar",
     "--keep-open=yes", "--idle=yes",

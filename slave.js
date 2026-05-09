@@ -257,12 +257,6 @@ function schedulePlay(epoch) {
 
   console.log(`Scheduled play in ${delay}ms`);
   playScheduled = setTimeout(() => {
-    sendToAll(["set_property", "ontop", true]);
-    if (MODE !== "wide") {
-      sendMpvCommand(ipcConnection1, ["set_property", "fullscreen", true]);
-      sendMpvCommand(ipcConnection2, ["set_property", "fullscreen", true]);
-      sendMpvCommand(ipcConnection3, ["set_property", "fullscreen", true]);
-    }
     sendToAll(["set_property", "pause", false]);
     console.log("▶️  Play!");
   }, delay);

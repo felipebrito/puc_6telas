@@ -14,6 +14,14 @@ const VIDEO_1_PATH = process.env.VIDEO_1_PATH || path.join(__dirname, "videos", 
 const VIDEO_2_PATH = process.env.VIDEO_2_PATH || path.join(__dirname, "videos", "screen_2.mp4");
 const VIDEO_3_PATH = process.env.VIDEO_3_PATH || path.join(__dirname, "videos", "screen_3.mp4");
 
+// Geometria fixa por tela — garante posição independente da ordem do macOS
+// Formato: LARGURAxALTURA+X+Y  (X=posição horizontal no espaço total de telas)
+const SCREEN_W  = parseInt(process.env.SCREEN_W  || "1920");
+const SCREEN_H  = parseInt(process.env.SCREEN_H  || "1080");
+const SCREEN1_X = parseInt(process.env.SCREEN1_X || "0");
+const SCREEN2_X = parseInt(process.env.SCREEN2_X || "1920");
+const SCREEN3_X = parseInt(process.env.SCREEN3_X || "3840");
+
 // --- Modo WIDE ---
 const WIDE_VIDEO_PATH = process.env.WIDE_VIDEO_PATH || path.join(__dirname, "videos", "wide_left.mp4");
 const WIDE_GEOMETRY   = process.env.WIDE_GEOMETRY   || "3662x1920+0+0";
@@ -38,21 +46,22 @@ let loopEndEmitted = false;     // evita emitir loop_end múltiplas vezes por ci
 
 // ─── MPV ───────────────────────────────────────────────────────────────────
 
-function startMpv(screenId, socketPath, videoPath) {
+function startMpv(screenId, offsetX, socketPath, videoPath) {
+  const geometry = `${SCREEN_W}x${SCREEN_H}+${offsetX}+0`;
   const args = [
-    "--fs",
-    `--screen=${screenId}`,
+    `--geometry=${geometry}`,
     `--input-ipc-server=${socketPath}`,
     "--no-osc", "--no-osd-bar",
     "--keep-open=yes", "--idle=yes",
     "--loop=inf", "--pause",
     "--ontop", "--no-border",
+    "--no-keepaspect-window",
     "--cursor-autohide=always",
     "--no-input-default-bindings",
     "--input-conf=/dev/null",
     videoPath
   ];
-  console.log(`Starting mpv screen=${screenId}`);
+  console.log(`Starting mpv screen=${screenId} geometry=${geometry}`);
   const proc = spawn("mpv", args, { stdio: "ignore" });
   proc.on("close", (code) => console.log(`mpv screen=${screenId} exited code=${code}`));
   return proc;
@@ -219,9 +228,9 @@ function initPlayers() {
   if (mpvProcess3) mpvProcess3.kill();
   cleanSockets(IPC_SOCKET_1, IPC_SOCKET_2, IPC_SOCKET_3);
 
-  mpvProcess1 = startMpv(0, IPC_SOCKET_1, VIDEO_1_PATH);
-  mpvProcess2 = startMpv(1, IPC_SOCKET_2, VIDEO_2_PATH);
-  mpvProcess3 = startMpv(2, IPC_SOCKET_3, VIDEO_3_PATH);
+  mpvProcess1 = startMpv(1, SCREEN1_X, IPC_SOCKET_1, VIDEO_1_PATH);
+  mpvProcess2 = startMpv(2, SCREEN2_X, IPC_SOCKET_2, VIDEO_2_PATH);
+  mpvProcess3 = startMpv(3, SCREEN3_X, IPC_SOCKET_3, VIDEO_3_PATH);
 
   setTimeout(() => {
     connectToIpc(IPC_SOCKET_1, (d) => handleMpvData(0, d), (conn) => { ipcConnection1 = conn; });

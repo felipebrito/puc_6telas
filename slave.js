@@ -21,6 +21,9 @@ const SCREEN_H  = parseInt(process.env.SCREEN_H  || "1080");
 const SCREEN1_X = parseInt(process.env.SCREEN1_X || "0");
 const SCREEN2_X = parseInt(process.env.SCREEN2_X || "1920");
 const SCREEN3_X = parseInt(process.env.SCREEN3_X || "3840");
+const SCREEN1_Y = parseInt(process.env.SCREEN1_Y || "0");
+const SCREEN2_Y = parseInt(process.env.SCREEN2_Y || "0");
+const SCREEN3_Y = parseInt(process.env.SCREEN3_Y || "0");
 
 // --- Modo WIDE ---
 const WIDE_VIDEO_PATH = process.env.WIDE_VIDEO_PATH || path.join(__dirname, "videos", "wide_left.mp4");
@@ -46,8 +49,8 @@ let loopEndEmitted = false;     // evita emitir loop_end múltiplas vezes por ci
 
 // ─── MPV ───────────────────────────────────────────────────────────────────
 
-function startMpv(screenId, offsetX, socketPath, videoPath) {
-  const geometry = `${SCREEN_W}x${SCREEN_H}+${offsetX}+0`;
+function startMpv(screenId, offsetX, offsetY, socketPath, videoPath) {
+  const geometry = `${SCREEN_W}x${SCREEN_H}+${offsetX}+${offsetY}`;
   const args = [
     `--geometry=${geometry}`,
     "--fs",
@@ -229,9 +232,9 @@ function initPlayers() {
   if (mpvProcess3) mpvProcess3.kill();
   cleanSockets(IPC_SOCKET_1, IPC_SOCKET_2, IPC_SOCKET_3);
 
-  mpvProcess1 = startMpv(1, SCREEN1_X, IPC_SOCKET_1, VIDEO_1_PATH);
-  mpvProcess2 = startMpv(2, SCREEN2_X, IPC_SOCKET_2, VIDEO_2_PATH);
-  mpvProcess3 = startMpv(3, SCREEN3_X, IPC_SOCKET_3, VIDEO_3_PATH);
+  mpvProcess1 = startMpv(1, SCREEN1_X, SCREEN1_Y, IPC_SOCKET_1, VIDEO_1_PATH);
+  mpvProcess2 = startMpv(2, SCREEN2_X, SCREEN2_Y, IPC_SOCKET_2, VIDEO_2_PATH);
+  mpvProcess3 = startMpv(3, SCREEN3_X, SCREEN3_Y, IPC_SOCKET_3, VIDEO_3_PATH);
 
   setTimeout(() => {
     connectToIpc(IPC_SOCKET_1, (d) => handleMpvData(0, d), (conn) => { ipcConnection1 = conn; });

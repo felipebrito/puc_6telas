@@ -19,7 +19,13 @@ echo "→ Encerrando processos anteriores..."
 pkill -f "node master.js" 2>/dev/null
 pkill -f "node slave.js"  2>/dev/null
 pkill -f mpv              2>/dev/null
-sleep 2
+# Garante que a porta 3000 foi liberada
+sleep 1
+while lsof -i :3000 -t &>/dev/null; do
+  kill $(lsof -i :3000 -t) 2>/dev/null
+  sleep 1
+done
+sleep 1
 
 # Inicia master em background
 echo "→ Iniciando master..."

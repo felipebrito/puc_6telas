@@ -266,7 +266,8 @@ function schedulePlay(epoch) {
 function handleHeartbeat(data) {
   if (!startEpoch) return;
 
-  const elapsed = (data.epoch - startEpoch) / 1000;
+  // Usa sempre o startEpoch do master para todos os slaves ficarem na mesma referência
+  const elapsed = (data.epoch - data.startEpoch) / 1000;
   if (!videoDuration || elapsed < 0) return;
 
   const expectedTime = elapsed % videoDuration;

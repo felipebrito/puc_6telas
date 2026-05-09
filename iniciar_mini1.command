@@ -21,6 +21,27 @@ pkill -9 -f "node" 2>/dev/null
 pkill -9 -f mpv    2>/dev/null
 sleep 2
 
+# Detecta índice de cada tela pela posição X — resolve a ordem aleatória do macOS
+echo "→ Detectando posição dos monitores..."
+SCREEN_MAP=$(swift -e '
+import Cocoa
+for (i, s) in NSScreen.screens.enumerated() {
+    print(i, Int(s.frame.origin.x))
+}
+')
+
+get_idx() {
+  echo "$SCREEN_MAP" | awk -v x="$1" '$2==x {print $1}'
+}
+
+IDX1=$(get_idx 0)
+IDX2=$(get_idx 1080)
+IDX3=$(get_idx 2160)
+
+echo "  Tela 1 (x=0)    → screen=$IDX1"
+echo "  Tela 2 (x=1080) → screen=$IDX2"
+echo "  Tela 3 (x=2160) → screen=$IDX3"
+
 # Inicia master em background
 echo "→ Iniciando master..."
 "$NODE" "$DIR/master.js" > /tmp/puc_master.log 2>&1 &
@@ -33,7 +54,7 @@ MASTER_IP="http://127.0.0.1:3000" \
 VIDEO_1_PATH="$DIR/videos/screen_1.mp4" \
 VIDEO_2_PATH="$DIR/videos/screen_2.mp4" \
 VIDEO_3_PATH="$DIR/videos/screen_3.mp4" \
-SCREEN1_IDX=0 SCREEN2_IDX=1 SCREEN3_IDX=2 \
+SCREEN1_IDX=$IDX1 SCREEN2_IDX=$IDX2 SCREEN3_IDX=$IDX3 \
 "$NODE" "$DIR/slave.js" > /tmp/puc_slave1.log 2>&1 &
 SLAVE_PID=$!
 

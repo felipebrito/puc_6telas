@@ -59,7 +59,7 @@ function startMpv(screenId, screenIndex, socketPath, videoPath) {
     "--input-conf=/dev/null",
     videoPath
   ];
-  console.log(`Starting mpv screen=${screenId} geometry=${geometry}`);
+  console.log(`Starting mpv screen=${screenId} index=${screenIndex}`);
   const proc = spawn("mpv", args, { stdio: "ignore" });
   proc.on("close", (code) => console.log(`mpv screen=${screenId} exited code=${code}`));
   return proc;

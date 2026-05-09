@@ -1,36 +1,46 @@
 #!/bin/bash
 # ─────────────────────────────────────────────
 #  PUC BIOMAS — Mac Mini 1 (Master + Telas 1-3)
-#  Duplo clique para iniciar o sistema
 # ─────────────────────────────────────────────
 
-cd "$(dirname "$0")"
+DIR="$(cd "$(dirname "$0")" && pwd)"
+export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
+NODE=$(which node)
 
 echo ""
 echo "╔══════════════════════════════════════╗"
-echo "║   PUC BIOMAS — Iniciando Mini 1      ║"
+echo "║   PUC BIOMAS — Mac Mini 1            ║"
 echo "║   Master + Telas 1, 2 e 3            ║"
 echo "╚══════════════════════════════════════╝"
 echo ""
 
-# Garante que pm2 está no PATH
-export PATH="/usr/local/bin:/opt/homebrew/bin:$PATH"
+# Mata processos anteriores
+echo "→ Encerrando processos anteriores..."
+pkill -f "node master.js" 2>/dev/null
+pkill -f "node slave.js"  2>/dev/null
+pkill -f mpv              2>/dev/null
+sleep 2
 
-# Para processos anteriores
-echo "→ Parando processos anteriores..."
-pm2 kill 2>/dev/null
-sleep 1
+# Inicia master em background
+echo "→ Iniciando master..."
+"$NODE" "$DIR/master.js" > /tmp/puc_master.log 2>&1 &
+MASTER_PID=$!
+sleep 3
 
-# Inicia master + slave
-echo "→ Iniciando sistema..."
-pm2 start ecosystem.mini1.config.js
+# Inicia slave em background
+echo "→ Iniciando slave (telas 1-3)..."
+MASTER_IP="http://127.0.0.1:3000" \
+VIDEO_1_PATH="$DIR/videos/screen_1.mp4" \
+VIDEO_2_PATH="$DIR/videos/screen_2.mp4" \
+VIDEO_3_PATH="$DIR/videos/screen_3.mp4" \
+"$NODE" "$DIR/slave.js" > /tmp/puc_slave1.log 2>&1 &
+SLAVE_PID=$!
 
 echo ""
-echo "✓ Mini 1 iniciado!"
+echo "✓ Mini 1 rodando! (master PID=$MASTER_PID, slave PID=$SLAVE_PID)"
 echo ""
 echo "Aguardando Mini 2 conectar..."
-echo "(Feche esta janela quando quiser — o sistema continua rodando)"
+echo "(Mantenha esta janela aberta — fechar encerra o sistema)"
 echo ""
-
-# Mostra logs ao vivo
-pm2 logs master --lines 0
+echo "─── Logs ao vivo ────────────────────────"
+tail -f /tmp/puc_master.log

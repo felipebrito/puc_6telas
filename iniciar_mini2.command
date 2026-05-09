@@ -17,8 +17,8 @@ echo ""
 
 # Mata processos anteriores
 echo "→ Encerrando processos anteriores..."
-pkill -f "node slave.js" 2>/dev/null
-pkill -f mpv             2>/dev/null
+pkill -9 -f "node" 2>/dev/null
+pkill -9 -f mpv    2>/dev/null
 sleep 2
 
 # Inicia slave em background

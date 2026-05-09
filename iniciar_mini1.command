@@ -16,10 +16,9 @@ echo ""
 
 # Mata processos anteriores
 echo "→ Encerrando processos anteriores..."
-pkill -9 -f "node master.js" 2>/dev/null
-pkill -9 -f "node slave.js"  2>/dev/null
-pkill -9 -f mpv              2>/dev/null
 kill -9 $(lsof -i :3000 -t 2>/dev/null) 2>/dev/null
+pkill -9 -f "node" 2>/dev/null
+pkill -9 -f mpv    2>/dev/null
 sleep 2
 
 # Inicia master em background

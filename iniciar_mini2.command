@@ -27,8 +27,8 @@ MASTER_IP="http://192.168.0.1:3000" \
 VIDEO_1_PATH="$DIR/videos/screen_4.mp4" \
 VIDEO_2_PATH="$DIR/videos/screen_5.mp4" \
 VIDEO_3_PATH="$DIR/videos/screen_6.mp4" \
-SCREEN_W=2160 SCREEN_H=3840 \
-SCREEN1_X=0 SCREEN2_X=2160 SCREEN3_X=4320 \
+SCREEN_W=1080 SCREEN_H=1920 \
+SCREEN1_X=0 SCREEN2_X=1080 SCREEN3_X=2160 \
 "$NODE" "$DIR/slave.js" > /tmp/puc_slave2.log 2>&1 &
 SLAVE_PID=$!
 

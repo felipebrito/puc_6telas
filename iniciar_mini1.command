@@ -7,6 +7,10 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
 NODE=$(which node)
 
+# Define o volume para 80%
+echo "→ Ajustando volume para 80%..."
+osascript -e "set volume output volume 80"
+
 echo ""
 echo "╔══════════════════════════════════════╗"
 echo "║   PUC BIOMAS — Mac Mini 1            ║"

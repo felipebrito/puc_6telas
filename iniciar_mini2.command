@@ -8,6 +8,10 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
 NODE=$(which node)
 
+# Define o volume para 0% (mutado)
+echo "→ Ajustando volume para 0% (mutado)..."
+osascript -e "set volume output volume 0"
+
 echo ""
 echo "╔══════════════════════════════════════╗"
 echo "║   PUC BIOMAS — Mac Mini 2            ║"
